@@ -98,19 +98,19 @@ func TestUserService_Create(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockUserRepository := mocks.UserRepository{}
-			mockUserRepository.On("Exist", mock.Anything).Return(tt.existResult...)
-			mockUserRepository.On("Create", mock.Anything).Return(tt.createResult)
+			mockUserRepository.On("UserIsExist", mock.Anything).Return(tt.existResult...)
+			mockUserRepository.On("CreateUser", mock.Anything).Return(tt.createResult)
 
 			u := UserService{
-				repo: &mockUserRepository,
+				userRepository: &mockUserRepository,
 			}
-			got, err := u.Create(tt.args.user)
+			got, err := u.CreateUser(tt.args.user)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("CreateUser() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Create() got = %v, want %v", got, tt.want)
+				t.Errorf("CreateUser() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

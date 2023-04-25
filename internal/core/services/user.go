@@ -12,20 +12,20 @@ import (
 )
 
 type UserService struct {
-	repo ports.UserRepository
+	userRepository ports.UserRepository
 }
 
-func NewUserService(repo ports.UserRepository) *UserService {
+func NewUserService(userRepository ports.UserRepository) *UserService {
 	return &UserService{
-		repo: repo,
+		userRepository: userRepository,
 	}
 }
 
-func (u *UserService) Create(request *domain.CreateUserRequest) (*domain.Response, error) {
-	if exist, err := u.repo.Exist(request.Email); err != nil {
+func (u *UserService) CreateUser(request *domain.CreateUserRequest) (*domain.Response, error) {
+	if exist, err := u.userRepository.UserIsExist(request.Email); err != nil {
 		return nil, &appError.AppError{Code: http.StatusInternalServerError, Message: err.Error()}
 	} else if exist {
-		return nil, &appError.AppError{Code: http.StatusConflict, Message: fmt.Sprintf("request with %s already exist", request.Email)}
+		return nil, &appError.AppError{Code: http.StatusConflict, Message: fmt.Sprintf("user %s already exist", request.Email)}
 	}
 
 	hashedPassword, salt, err := hash.HashPassword(request.Password)
@@ -43,19 +43,19 @@ func (u *UserService) Create(request *domain.CreateUserRequest) (*domain.Respons
 		UpdatedAt: time.Now(),
 	}
 
-	if err := u.repo.Create(user); err != nil {
+	if err := u.userRepository.CreateUser(user); err != nil {
 		return nil, &appError.AppError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	return &domain.Response{
 		Code:    http.StatusCreated,
-		Message: "created",
+		Message: http.StatusText(http.StatusCreated),
 		Data:    nil,
 	}, nil
 }
 
-func (u *UserService) Update(request *domain.UpdateUserRequest) (*domain.Response, error) {
-	user, err := u.repo.UserByEmail(request.Email)
+func (u *UserService) UpdateUser(request *domain.UpdateUserRequest) (*domain.Response, error) {
+	user, err := u.userRepository.GetUserByEmail(request.Email)
 	if err != nil && user == nil {
 		return nil, &appError.AppError{Code: http.StatusNotFound, Message: fmt.Sprintf("user with %s not exist", request.Email)}
 	}
@@ -73,56 +73,56 @@ func (u *UserService) Update(request *domain.UpdateUserRequest) (*domain.Respons
 	user.Active = *request.Active
 	user.UpdatedAt = time.Now()
 
-	err = u.repo.Update(user)
+	err = u.userRepository.UpdateUser(user)
 	if err != nil {
 		return nil, &appError.AppError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	return &domain.Response{
 		Code:    http.StatusOK,
-		Message: "ok",
+		Message: http.StatusText(http.StatusOK),
 		Data:    nil,
 	}, nil
 }
 
-func (u *UserService) Delete(id string) (*domain.Response, error) {
-	user, err := u.repo.UserByID(id)
+func (u *UserService) DeleteUser(id string) (*domain.Response, error) {
+	user, err := u.userRepository.GetUserByID(id)
 	if err != nil && user == nil {
 		return nil, &appError.AppError{Code: http.StatusNotFound, Message: fmt.Sprintf("user with id %s not exist", id)}
 	}
 
-	err = u.repo.Delete(user.Id)
+	err = u.userRepository.DeleteUser(user.Id)
 	if err != nil {
 		return nil, &appError.AppError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 	return &domain.Response{
 		Code:    http.StatusOK,
-		Message: "ok",
+		Message: http.StatusText(http.StatusOK),
 		Data:    nil,
 	}, nil
 }
 
-func (u *UserService) Users() (*domain.Response, error) {
-	result, err := u.repo.Users()
+func (u *UserService) GetUsers() (*domain.Response, error) {
+	result, err := u.userRepository.GetAllUsers()
 	if err != nil {
 		return nil, &appError.AppError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
 	return &domain.Response{
 		Code:    http.StatusOK,
-		Message: "ok",
+		Message: http.StatusText(http.StatusOK),
 		Data:    result,
 	}, nil
 }
 
-func (u *UserService) User(id string) (*domain.Response, error) {
-	result, err := u.repo.UserByID(id)
+func (u *UserService) GetUser(id string) (*domain.Response, error) {
+	result, err := u.userRepository.GetUserByID(id)
 	if err != nil && result == nil {
 		return nil, &appError.AppError{Code: http.StatusNotFound, Message: fmt.Sprintf("user with id %s not exist", id)}
 	}
 
 	return &domain.Response{
 		Code:    http.StatusOK,
-		Message: "ok",
+		Message: http.StatusText(http.StatusOK),
 		Data:    result,
 	}, nil
 }

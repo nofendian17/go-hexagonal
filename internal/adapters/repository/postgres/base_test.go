@@ -8,7 +8,7 @@ import (
 
 func TestNewRepository(t *testing.T) {
 	t.Run("Positive Test Case", func(t *testing.T) {
-		// Create a mock DB connection
+		// CreateUser a mock DB connection
 		db, mock, err := sqlmock.New()
 		if err != nil {
 			t.Fatalf("Error creating mock DB connection: %v", err)
@@ -18,10 +18,10 @@ func TestNewRepository(t *testing.T) {
 		// Expect a ping to the DB to succeed
 		mock.ExpectPing()
 
-		// Create a new config with the DB host, port, etc.
+		// CreateUser a new config with the DB host, port, etc.
 		cfg := config.New()
 
-		// Create a new repository using the mock DB connection
+		// CreateUser a new repository using the mock DB connection
 		repo := NewRepository(cfg)
 		repo.db = db
 
@@ -32,7 +32,7 @@ func TestNewRepository(t *testing.T) {
 	})
 
 	//t.Run("Negative Test Case", func(t *testing.T) {
-	//	// Create a mock DB connection
+	//	// CreateUser a mock DB connection
 	//	db, mock, err := sqlmock.New()
 	//	if err != nil {
 	//		t.Fatalf("Error creating mock DB connection: %v", err)
@@ -42,10 +42,10 @@ func TestNewRepository(t *testing.T) {
 	//	// Expect a ping to the DB to return an error
 	//	mock.ExpectPing().WillReturnError(errors.New("db ping failure"))
 	//
-	//	// Create a new config with the DB host, port, etc.
+	//	// CreateUser a new config with the DB host, port, etc.
 	//	cfg := config.New()
 	//
-	//	// Create a new repository using the mock DB connection
+	//	// CreateUser a new repository using the mock DB connection
 	//	repo := NewRepository(cfg)
 	//	repo.db = db
 	//

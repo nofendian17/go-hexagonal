@@ -26,23 +26,32 @@ func Run() {
 	cfg := config.New()
 	repo := postgres.NewRepository(cfg)
 	userService := services.NewUserService(repo)
-	InitRoutes(cfg.App.Port, userService)
+	roleService := services.NewRoleService(repo)
+	InitRoutes(cfg.App.Port, userService, roleService)
 }
 
-func InitRoutes(port int32, userService *services.UserService) {
+func InitRoutes(port int32, userService *services.UserService, roleService *services.RoleService) {
 	e := echo.New()
 	e.Validator = &validatorHelper.CustomValidator{
 		Validator: validator.New(),
 	}
 
-	h := handler.NewHttpHandler(*userService)
+	h := handler.NewHttpHandler(*userService, *roleService)
 
 	v1 := e.Group("/api/v1")
+	// user route
 	v1.POST("/user", h.CreateUser)
 	v1.PUT("/user", h.UpdateUser)
 	v1.DELETE("/user/:id", h.DeleteUser)
 	v1.GET("/user/:id", h.User)
 	v1.GET("/users", h.Users)
+
+	// role route
+	v1.POST("/role", h.CreateRole)
+	v1.PUT("/role", h.UpdateRole)
+	v1.DELETE("/role/:id", h.DeleteRole)
+	v1.GET("/role/:id", h.Role)
+	v1.GET("/roles", h.Roles)
 
 	e.HTTPErrorHandler = errorHandler
 
@@ -61,6 +70,7 @@ func errorHandler(err error, c echo.Context) {
 	}
 
 	if appErr, ok := err.(*appError.AppError); ok {
+		report.Code = appErr.Code
 		c.Logger().Error(appErr)
 		c.JSON(appErr.Code, domain.Response{
 			Code:    appErr.Code,
@@ -93,6 +103,7 @@ func errorHandler(err error, c echo.Context) {
 		Code:    report.Code,
 		Message: report.Message.(string),
 	})
+	return
 }
 
 func startServer(e *echo.Echo, port int32) {

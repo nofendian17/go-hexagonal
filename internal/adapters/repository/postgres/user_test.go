@@ -309,20 +309,20 @@ func TestRepository_UserByID(t *testing.T) {
 }
 
 func TestUserByEmail(t *testing.T) {
-	// Create a mock DB connection for the test
+	// CreateUser a mock DB connection for the test
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("Failed to create mock DB connection: %s", err)
 	}
 	defer db.Close()
 
-	// Create the repository with the mock DB connection
+	// CreateUser the repository with the mock DB connection
 	repo := &Repository{db: db}
 
 	// Define the expected user and row data
 	expectedUser := &domain.User{
 		Id:        "1",
-		Name:      "Test User",
+		Name:      "Test GetUser",
 		Email:     "test@example.com",
 		Active:    true,
 		CreatedAt: time.Now(),

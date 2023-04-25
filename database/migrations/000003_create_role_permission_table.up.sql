@@ -1,27 +1,7 @@
-create table if not exists role_permission
-(
-    id
-    uuid
-    not
-    null
-    primary
-    key,
-    permission_id
-    uuid
-    not
-    null,
-    role_id
-    uuid
-    not
-    null,
-    created_at
-    timestamp
-(
-    0
-),
-    updated_at timestamp
-(
-    0
-)
-    );
-
+CREATE TABLE IF NOT EXISTS role_permission (
+    id              UUID NOT NULL PRIMARY KEY,
+    permission_id   UUID NOT NULL,
+    role_id         UUID NOT NULL,
+    created_at      TIMESTAMP(0),
+    updated_at      TIMESTAMP(0)
+);
