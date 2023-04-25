@@ -16,6 +16,7 @@ type CreateRoleRequest struct {
 }
 
 type UpdateRoleRequest struct {
+	Id     string `param:"id" validate:"required,uuid"`
 	Name   string `json:"name" validate:"required"`
 	Active *bool  `json:"active" validate:"required"`
 }

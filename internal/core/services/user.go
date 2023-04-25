@@ -13,11 +13,13 @@ import (
 
 type UserService struct {
 	userRepository ports.UserRepository
+	hasher         hash.Hasher
 }
 
-func NewUserService(userRepository ports.UserRepository) *UserService {
+func NewUserService(userRepository ports.UserRepository, hasher hash.Hasher) *UserService {
 	return &UserService{
 		userRepository: userRepository,
+		hasher:         hasher,
 	}
 }
 
@@ -28,7 +30,7 @@ func (u *UserService) CreateUser(request *domain.CreateUserRequest) (*domain.Res
 		return nil, &appError.AppError{Code: http.StatusConflict, Message: fmt.Sprintf("user %s already exist", request.Email)}
 	}
 
-	hashedPassword, salt, err := hash.HashPassword(request.Password)
+	hashedPassword, salt, err := u.hasher.HashPassword(request.Password)
 	if err != nil {
 		return nil, &appError.AppError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
@@ -55,13 +57,18 @@ func (u *UserService) CreateUser(request *domain.CreateUserRequest) (*domain.Res
 }
 
 func (u *UserService) UpdateUser(request *domain.UpdateUserRequest) (*domain.Response, error) {
-	user, err := u.userRepository.GetUserByEmail(request.Email)
+	user, err := u.userRepository.GetUserByID(request.Id)
 	if err != nil && user == nil {
-		return nil, &appError.AppError{Code: http.StatusNotFound, Message: fmt.Sprintf("user with %s not exist", request.Email)}
+		return nil, &appError.AppError{Code: http.StatusNotFound, Message: fmt.Sprintf("user with id %s not exist", request.Id)}
+	}
+
+	check, _ := u.userRepository.GetUserByEmail(request.Email)
+	if check != nil && check.Id != user.Id {
+		return nil, &appError.AppError{Code: http.StatusConflict, Message: fmt.Sprintf("user with email %s already exist", request.Email)}
 	}
 
 	if request.Password != "" {
-		hashedPassword, salt, err := hash.HashPassword(request.Password)
+		hashedPassword, salt, err := u.hasher.HashPassword(request.Password)
 		if err != nil {
 			return nil, &appError.AppError{Code: http.StatusInternalServerError, Message: err.Error()}
 		}
@@ -70,6 +77,7 @@ func (u *UserService) UpdateUser(request *domain.UpdateUserRequest) (*domain.Res
 	}
 
 	user.Name = request.Name
+	user.Email = request.Email
 	user.Active = *request.Active
 	user.UpdatedAt = time.Now()
 

@@ -16,6 +16,7 @@ import (
 	"user-svc/internal/core/services"
 	"user-svc/internal/shared/config"
 	appError "user-svc/internal/shared/error"
+	"user-svc/internal/shared/hash"
 	validatorHelper "user-svc/internal/shared/validator"
 )
 
@@ -24,22 +25,28 @@ const shutdownTimeout = 10 * time.Second
 func Start() {
 	e := echo.New()
 	cfg := config.New()
-	// hex can switch storage
-	// with implement interface
+	// hex can switch different storage
+	// with implement the interface
 	repo := postgres.NewRepository(cfg)
-	userService := services.NewUserService(repo)
+	hasher := hash.NewHasher(cfg)
+	userService := services.NewUserService(repo, hasher)
 	roleService := services.NewRoleService(repo)
-	RegisterRoutes(e, *userService, *roleService)
+	permissionService := services.NewPermissionService(repo)
+	// Register http routes
+	RegisterRoutes(e, *userService, *roleService, *permissionService)
+	// Register middleware
 	RegisterMiddleware(e)
-	e.Debug = true
+	e.Debug = cfg.App.Debug
 	e.Validator = &validatorHelper.CustomValidator{
 		Validator: validator.New(),
 	}
 	e.HTTPErrorHandler = errorHandler
+	// Start server
 	startServer(e, cfg.App.Port)
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
+	// Graceful shutdown
 	shutdownServer(e)
 }
 

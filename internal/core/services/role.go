@@ -46,9 +46,14 @@ func (r *RoleService) CreateRole(request *domain.CreateRoleRequest) (*domain.Res
 }
 
 func (r *RoleService) UpdateRole(request *domain.UpdateRoleRequest) (*domain.Response, error) {
-	role, err := r.roleRepository.GetRoleByName(request.Name)
+	role, err := r.roleRepository.GetRoleByID(request.Id)
 	if err != nil && role == nil {
-		return nil, &appError.AppError{Code: http.StatusNotFound, Message: fmt.Sprintf("role %s not exist", request.Name)}
+		return nil, &appError.AppError{Code: http.StatusNotFound, Message: fmt.Sprintf("role with id %s not exist", role.Id)}
+	}
+
+	check, _ := r.roleRepository.GetRoleByName(request.Name)
+	if check != nil && check.Id != role.Id {
+		return nil, &appError.AppError{Code: http.StatusConflict, Message: fmt.Sprintf("role with name %s already exist", request.Name)}
 	}
 
 	role.Name = request.Name
