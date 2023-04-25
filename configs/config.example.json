@@ -1,0 +1,32 @@
+{
+  "app": {
+    "name": "user-svc",
+    "description": "made with finger",
+    "version": "1.0.0",
+    "port": "3000",
+    "debug": true,
+    "key": "YOUR_SECRET_KEY"
+  },
+  "database": {
+    "pgsql": {
+      "host": "127.0.0.1",
+      "port": 5432,
+      "database": "services",
+      "schema": "public",
+      "username": "root",
+      "password": "Password123"
+    },
+    "redis": {
+      "host": "127.0.0.1",
+      "port": 6379,
+      "prefix": "app_",
+      "lifetime": 600
+    }
+  },
+  "log": {
+    "fileTdrLocation": "logs/tdr.log",
+    "fileLocation": "logs/sys.log",
+    "fileMaxAge": 30,
+    "stdout": false
+  }
+}

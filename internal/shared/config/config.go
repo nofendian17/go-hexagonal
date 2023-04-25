@@ -17,7 +17,7 @@ type (
 		Name        string `json:"name" validate:"required"`
 		Description string `json:"description" validate:"required"`
 		Version     string `json:"version" validate:"required"`
-		Port        int32  `json:"port" validate:"required"`
+		Port        int    `json:"port" validate:"required"`
 		Debug       bool   `json:"debug" json:"debug" validate:"required"`
 		Key         string `json:"key" validate:"required"`
 	}
@@ -25,7 +25,7 @@ type (
 	database struct {
 		Pgsql struct {
 			Host     string `json:"host" validate:"required"`
-			Port     int32  `json:"port" validate:"required"`
+			Port     int    `json:"port" validate:"required"`
 			Database string `json:"database" validate:"required"`
 			Schema   string `json:"schema" validate:"required"`
 			Username string `json:"username" validate:"required"`
@@ -33,9 +33,9 @@ type (
 		} `json:"pgsql" validate:"required"`
 		Redis struct {
 			Host     string `json:"host" validate:"required"`
-			Port     int32  `json:"port" validate:"required"`
+			Port     int    `json:"port" validate:"required"`
 			Prefix   string `json:"prefix" validate:"required"`
-			Lifetime int32  `json:"lifetime" validate:"required"`
+			Lifetime int    `json:"lifetime" validate:"required"`
 		} `json:"redis" validate:"required"`
 	}
 

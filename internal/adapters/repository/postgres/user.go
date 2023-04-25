@@ -5,7 +5,7 @@ import (
 	"user-svc/internal/core/domain"
 )
 
-func (r *Repository) Create(user *domain.User) error {
+func (r *Repository) CreateUser(user *domain.User) error {
 	query := "INSERT INTO users (id, name, email, salt, password, active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
@@ -21,7 +21,7 @@ func (r *Repository) Create(user *domain.User) error {
 	return nil
 }
 
-func (r *Repository) Update(user *domain.User) error {
+func (r *Repository) UpdateUser(user *domain.User) error {
 	query := "UPDATE users SET name = $1, email = $2, salt = $3, password = $4, active = $5, updated_at = $6 WHERE id = $7"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
@@ -46,7 +46,7 @@ func (r *Repository) Update(user *domain.User) error {
 	return nil
 }
 
-func (r *Repository) Delete(id string) error {
+func (r *Repository) DeleteUser(id string) error {
 	query := "DELETE FROM users WHERE id = $1"
 	stmt, err := r.db.Prepare(query)
 	if err != nil {
@@ -71,7 +71,7 @@ func (r *Repository) Delete(id string) error {
 	return nil
 }
 
-func (r *Repository) Users() ([]*domain.User, error) {
+func (r *Repository) GetAllUsers() ([]*domain.User, error) {
 	query := "SELECT id, name, email, salt, password, active, created_at, updated_at FROM users"
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -96,7 +96,7 @@ func (r *Repository) Users() ([]*domain.User, error) {
 	return users, nil
 }
 
-func (r *Repository) UserByID(id string) (*domain.User, error) {
+func (r *Repository) GetUserByID(id string) (*domain.User, error) {
 	query := "SELECT id, name, email, active, created_at, updated_at FROM users WHERE id = $1"
 	row := r.db.QueryRow(query, id)
 
@@ -109,7 +109,7 @@ func (r *Repository) UserByID(id string) (*domain.User, error) {
 	return &user, nil
 }
 
-func (r *Repository) UserByEmail(email string) (*domain.User, error) {
+func (r *Repository) GetUserByEmail(email string) (*domain.User, error) {
 	query := "SELECT id, name, email, active, created_at, updated_at FROM users WHERE email = $1"
 	row := r.db.QueryRow(query, email)
 
@@ -122,7 +122,7 @@ func (r *Repository) UserByEmail(email string) (*domain.User, error) {
 	return &user, nil
 }
 
-func (r *Repository) Exist(email string) (bool, error) {
+func (r *Repository) UserIsExist(email string) (bool, error) {
 	query := "SELECT COUNT(*) FROM users WHERE email = $1"
 	var count int
 	row := r.db.QueryRow(query, email)

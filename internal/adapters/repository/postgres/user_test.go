@@ -37,7 +37,7 @@ func TestRepository_Create(t *testing.T) {
 		mock.ExpectPrepare(query).
 			WillReturnError(fmt.Errorf("failed to prepare statement"))
 
-		err = repo.Create(user)
+		err = repo.CreateUser(user)
 		assert.Error(t, err)
 	})
 
@@ -47,7 +47,7 @@ func TestRepository_Create(t *testing.T) {
 			WithArgs(user.Id, user.Name, user.Email, user.Salt, user.Password, user.Active, user.CreatedAt, user.UpdatedAt).
 			WillReturnError(fmt.Errorf("failed to execute statement"))
 
-		err = repo.Create(user)
+		err = repo.CreateUser(user)
 		assert.Error(t, err)
 	})
 
@@ -57,7 +57,7 @@ func TestRepository_Create(t *testing.T) {
 			WithArgs(user.Id, user.Name, user.Email, user.Salt, user.Password, user.Active, user.CreatedAt, user.UpdatedAt).
 			WillReturnResult(sqlmock.NewResult(0, 1))
 
-		err = repo.Create(user)
+		err = repo.CreateUser(user)
 		assert.NoError(t, err)
 	})
 
@@ -92,7 +92,7 @@ func TestRepository_Update(t *testing.T) {
 			WithArgs(user.Name, user.Email, user.Salt, user.Password, user.Active, user.UpdatedAt, user.Id).
 			WillReturnResult(sqlmock.NewResult(0, 1))
 
-		err = r.Update(user)
+		err = r.UpdateUser(user)
 		assert.NoError(t, err)
 	})
 
@@ -102,7 +102,7 @@ func TestRepository_Update(t *testing.T) {
 			WithArgs(user.Name, user.Email, user.Salt, user.Password, user.Active, user.UpdatedAt, user.Id).
 			WillReturnResult(sqlmock.NewResult(0, 0))
 
-		err = r.Update(user)
+		err = r.UpdateUser(user)
 		assert.Error(t, err)
 
 		assert.True(t, err.Error() == errors.New("no rows were affected").Error())
@@ -112,7 +112,7 @@ func TestRepository_Update(t *testing.T) {
 		expectedErr := errors.New("failed to prepare statement")
 		mock.ExpectPrepare(query).WillReturnError(expectedErr)
 
-		err = r.Update(user)
+		err = r.UpdateUser(user)
 		assert.Error(t, err)
 		assert.Equal(t, expectedErr, err)
 	})
@@ -122,7 +122,7 @@ func TestRepository_Update(t *testing.T) {
 		mock.ExpectPrepare(query)
 		mock.ExpectExec(query).WillReturnError(expectedErr)
 
-		err = r.Update(user)
+		err = r.UpdateUser(user)
 		assert.Error(t, err)
 		assert.Equal(t, expectedErr, err)
 	})
@@ -134,7 +134,7 @@ func TestRepository_Update(t *testing.T) {
 			WithArgs(user.Name, user.Email, user.Salt, user.Password, user.Active, user.UpdatedAt, user.Id).
 			WillReturnError(expectedErr)
 
-		err = r.Update(user)
+		err = r.UpdateUser(user)
 		assert.Error(t, err)
 		assert.Equal(t, expectedErr, err)
 	})
@@ -153,7 +153,7 @@ func TestRepository_Delete(t *testing.T) {
 	mock.ExpectPrepare(query).
 		WillReturnError(fmt.Errorf("failed to prepare statement"))
 
-	err = repo.Delete("1")
+	err = repo.DeleteUser("1")
 	assert.Error(t, err)
 
 	// Test case: execution of statement fails
@@ -162,7 +162,7 @@ func TestRepository_Delete(t *testing.T) {
 		WithArgs("1").
 		WillReturnError(fmt.Errorf("failed to execute statement"))
 
-	err = repo.Delete("1")
+	err = repo.DeleteUser("1")
 	assert.Error(t, err)
 
 	// Test case: no rows affected
@@ -171,7 +171,7 @@ func TestRepository_Delete(t *testing.T) {
 		WithArgs("1").
 		WillReturnResult(sqlmock.NewResult(0, 0))
 
-	err = repo.Delete("1")
+	err = repo.DeleteUser("1")
 	assert.Error(t, err)
 	assert.True(t, err.Error() == errors.New("no rows were affected").Error())
 
@@ -181,7 +181,7 @@ func TestRepository_Delete(t *testing.T) {
 		WithArgs("1").
 		WillReturnResult(sqlmock.NewResult(0, 1))
 
-	err = repo.Delete("1")
+	err = repo.DeleteUser("1")
 	assert.NoError(t, err)
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -228,7 +228,7 @@ func TestRepository_Users(t *testing.T) {
 	// Test case: successfully retrieve users
 	mock.ExpectQuery("^SELECT").WillReturnRows(rows)
 
-	users, err := repo.Users()
+	users, err := repo.GetAllUsers()
 	require.NoError(t, err)
 	require.Equal(t, len(expectedUsers), len(users))
 
@@ -247,7 +247,7 @@ func TestRepository_Users(t *testing.T) {
 	expectedErr := fmt.Errorf("some error")
 	mock.ExpectQuery("^SELECT").WillReturnError(expectedErr)
 
-	users, err = repo.Users()
+	users, err = repo.GetAllUsers()
 	require.Error(t, err)
 	require.Nil(t, users)
 	assert.Equal(t, expectedErr, err)
@@ -257,7 +257,7 @@ func TestRepository_Users(t *testing.T) {
 
 	mock.ExpectQuery("^SELECT").WillReturnRows(rows)
 
-	users, err = repo.Users()
+	users, err = repo.GetAllUsers()
 	require.Error(t, err)
 	require.Nil(t, users)
 	assert.Contains(t, err.Error(), "sql: expected 2 destination arguments in Scan, not 8")
@@ -296,7 +296,7 @@ func TestRepository_UserByID(t *testing.T) {
 		WillReturnRows(rows)
 
 	// Call UserByID method
-	user, err := repo.UserByID(id)
+	user, err := repo.GetUserByID(id)
 
 	// Check for errors and validate user returned by method
 	assert.NoError(t, err)
@@ -309,20 +309,20 @@ func TestRepository_UserByID(t *testing.T) {
 }
 
 func TestUserByEmail(t *testing.T) {
-	// Create a mock DB connection for the test
+	// CreateUser a mock DB connection for the test
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("Failed to create mock DB connection: %s", err)
 	}
 	defer db.Close()
 
-	// Create the repository with the mock DB connection
+	// CreateUser the repository with the mock DB connection
 	repo := &Repository{db: db}
 
 	// Define the expected user and row data
 	expectedUser := &domain.User{
 		Id:        "1",
-		Name:      "Test User",
+		Name:      "Test GetUser",
 		Email:     "test@example.com",
 		Active:    true,
 		CreatedAt: time.Now(),
@@ -337,7 +337,7 @@ func TestUserByEmail(t *testing.T) {
 		WillReturnRows(row)
 
 	// Call the method being tested
-	actualUser, err := repo.UserByEmail(expectedUser.Email)
+	actualUser, err := repo.GetUserByEmail(expectedUser.Email)
 	if err != nil {
 		t.Fatalf("Unexpected error from UserByEmail: %s", err)
 	}
@@ -365,7 +365,7 @@ func TestExist(t *testing.T) {
 	rows := sqlmock.NewRows([]string{"count"}).AddRow(1)
 	mock.ExpectQuery("SELECT COUNT(.+) FROM users").WithArgs(email).WillReturnRows(rows)
 
-	exist, err := repo.Exist(email)
+	exist, err := repo.UserIsExist(email)
 	assert.NoError(t, err)
 	assert.True(t, exist)
 

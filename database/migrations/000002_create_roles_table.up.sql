@@ -1,24 +1,7 @@
-create table if not exists roles
-(
-    id
-    uuid
-    not
-    null
-    primary
-    key,
-    name
-    varchar
-(
-    255
-) not null,
-    active boolean default true not null,
-    created_at timestamp
-(
-    0
-),
-    updated_at timestamp
-(
-    0
-)
-    );
-
+CREATE TABLE IF NOT EXISTS roles (
+    id UUID PRIMARY KEY NOT NULL,
+    name VARCHAR(255) NOT NULL CONSTRAINT roles_name_unique UNIQUE,
+    active BOOLEAN DEFAULT TRUE NOT NULL,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);

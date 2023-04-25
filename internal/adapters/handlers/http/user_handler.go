@@ -1,4 +1,4 @@
-package handler
+package http
 
 import (
 	"github.com/labstack/echo/v4"
@@ -7,17 +7,17 @@ import (
 	"user-svc/internal/core/services"
 )
 
-type HttpHandler struct {
+type UserHandler struct {
 	userService services.UserService
 }
 
-func NewHttpHandler(userService services.UserService) *HttpHandler {
-	return &HttpHandler{
+func NewUserHandler(userService services.UserService) *UserHandler {
+	return &UserHandler{
 		userService: userService,
 	}
 }
 
-func (h *HttpHandler) CreateUser(c echo.Context) error {
+func (h *UserHandler) CreateUser(c echo.Context) error {
 	var user domain.CreateUserRequest
 	if err := c.Bind(&user); err != nil {
 		return err
@@ -27,7 +27,7 @@ func (h *HttpHandler) CreateUser(c echo.Context) error {
 		return err
 	}
 
-	result, err := h.userService.Create(&user)
+	result, err := h.userService.CreateUser(&user)
 	if err != nil {
 		return err
 	}
@@ -35,7 +35,7 @@ func (h *HttpHandler) CreateUser(c echo.Context) error {
 	return c.JSON(http.StatusCreated, result)
 }
 
-func (h *HttpHandler) UpdateUser(c echo.Context) error {
+func (h *UserHandler) UpdateUser(c echo.Context) error {
 	var user domain.UpdateUserRequest
 	if err := c.Bind(&user); err != nil {
 		return err
@@ -45,7 +45,7 @@ func (h *HttpHandler) UpdateUser(c echo.Context) error {
 		return err
 	}
 
-	result, err := h.userService.Update(&user)
+	result, err := h.userService.UpdateUser(&user)
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func (h *HttpHandler) UpdateUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
-func (h *HttpHandler) DeleteUser(c echo.Context) error {
+func (h *UserHandler) DeleteUser(c echo.Context) error {
 	var user domain.DeleteUserRequest
 	if err := c.Bind(&user); err != nil {
 		return err
@@ -63,7 +63,7 @@ func (h *HttpHandler) DeleteUser(c echo.Context) error {
 		return err
 	}
 
-	result, err := h.userService.Delete(user.Id)
+	result, err := h.userService.DeleteUser(user.Id)
 	if err != nil {
 		return err
 	}
@@ -71,8 +71,8 @@ func (h *HttpHandler) DeleteUser(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
-func (h *HttpHandler) Users(c echo.Context) error {
-	result, err := h.userService.Users()
+func (h *UserHandler) Users(c echo.Context) error {
+	result, err := h.userService.GetUsers()
 	if err != nil {
 		return err
 	}
@@ -80,7 +80,7 @@ func (h *HttpHandler) Users(c echo.Context) error {
 	return c.JSON(http.StatusOK, result)
 }
 
-func (h *HttpHandler) User(c echo.Context) error {
+func (h *UserHandler) User(c echo.Context) error {
 	var user domain.GetUserRequest
 	if err := c.Bind(&user); err != nil {
 		return err
@@ -90,7 +90,7 @@ func (h *HttpHandler) User(c echo.Context) error {
 		return err
 	}
 
-	result, err := h.userService.User(user.Id)
+	result, err := h.userService.GetUser(user.Id)
 	if err != nil {
 		return err
 	}

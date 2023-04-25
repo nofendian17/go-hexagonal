@@ -22,6 +22,7 @@ type CreateUserRequest struct {
 }
 
 type UpdateUserRequest struct {
+	Id       string `param:"id" validate:"required,uuid"`
 	Name     string `json:"name" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
 	Active   *bool  `json:"active" validate:"required"`
