@@ -5,7 +5,7 @@ import "time"
 type Role struct {
 	Id        string    `json:"id"`
 	Name      string    `json:"name"`
-	Active    bool      `json:"active"`
+	Active    bool      `json:"active,omitempty"`
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }

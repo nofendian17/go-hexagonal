@@ -48,7 +48,7 @@ func (r *PermissionService) CreatePermission(request *domain.CreatePermissionReq
 func (r *PermissionService) UpdatePermission(request *domain.UpdatePermissionRequest) (*domain.Response, error) {
 	permission, err := r.permissionRepository.GetPermissionByID(request.Id)
 	if err != nil && permission == nil {
-		return nil, &appError.AppError{Code: http.StatusNotFound, Message: fmt.Sprintf("permission with id %s not exist", permission.Id)}
+		return nil, &appError.AppError{Code: http.StatusNotFound, Message: fmt.Sprintf("permission with id %s not exist", request.Id)}
 	}
 
 	check, _ := r.permissionRepository.GetPermissionByName(request.Name)

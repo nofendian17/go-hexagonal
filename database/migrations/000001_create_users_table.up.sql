@@ -1,6 +1,5 @@
 create table if not exists users (
     id uuid not null primary key,
-    role_id uuid,
     name varchar (255) not null,
     email varchar (255) not null constraint users_email_unique unique,
     active boolean default true not null,
