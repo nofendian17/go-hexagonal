@@ -10,9 +10,12 @@ func RegisterRoutes(
 	userService services.UserService,
 	roleService services.RoleService,
 	permissionService services.PermissionService,
+	userRoleService services.UserRoleService,
 ) {
 	// Create user handler
 	userHandler := NewUserHandler(userService)
+	// Create user role handler
+	userRoleHandler := NewUserRoleHandler(userRoleService)
 	// Create role handler
 	roleHandler := NewRoleHandler(roleService)
 	// Create permission handler
@@ -26,6 +29,11 @@ func RegisterRoutes(
 	v1.DELETE("/user/:id", userHandler.DeleteUser)
 	v1.GET("/user/:id", userHandler.User)
 	v1.GET("/users", userHandler.Users)
+
+	// Register user role endpoints
+	v1.GET("/user/:user_id/roles", userRoleHandler.GetUserRoles)
+	v1.POST("/user/:user_id/roles/assign", userRoleHandler.AssignRolesToUser)
+	v1.DELETE("/user/:user_id/roles/revoke", userRoleHandler.RemoveRolesFromUser)
 
 	// Register role endpoints
 	v1.POST("/role", roleHandler.CreateRole)

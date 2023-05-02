@@ -32,8 +32,9 @@ func Start() {
 	userService := services.NewUserService(repo, hasher)
 	roleService := services.NewRoleService(repo)
 	permissionService := services.NewPermissionService(repo)
+	userRoleService := services.NewUserRoleService(repo, userService, roleService)
 	// Register http routes
-	RegisterRoutes(e, *userService, *roleService, *permissionService)
+	RegisterRoutes(e, *userService, *roleService, *permissionService, *userRoleService)
 	// Register middleware
 	RegisterMiddleware(e)
 	e.Debug = cfg.App.Debug
@@ -104,7 +105,7 @@ func errorHandler(err error, c echo.Context) {
 func startServer(e *echo.Echo, port int) {
 	go func() {
 		if err := e.Start(fmt.Sprintf(":%d", port)); err != nil && err != http.ErrServerClosed {
-			e.Logger.Fatal("shutting down the server")
+			e.Logger.Fatal(err)
 		}
 	}()
 }
