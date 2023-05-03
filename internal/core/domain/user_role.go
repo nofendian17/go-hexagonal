@@ -11,5 +11,5 @@ type AssignRolesToUserRequest struct {
 
 type RemoveRolesFromUserRequest struct {
 	UserId  string   `param:"user_id" validate:"required,uuid"`
-	RolesId []string `json:"roles_id" validate:"dive,required,uuid"`
+	RolesId []string `json:"roles_id" validate:"dive,required,min=1,uuid"`
 }

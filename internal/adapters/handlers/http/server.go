@@ -33,8 +33,16 @@ func Start() {
 	roleService := services.NewRoleService(repo)
 	permissionService := services.NewPermissionService(repo)
 	userRoleService := services.NewUserRoleService(repo, userService, roleService)
+	rolePermissionService := services.NewRolePermissionService(repo, roleService, permissionService)
 	// Register http routes
-	RegisterRoutes(e, *userService, *roleService, *permissionService, *userRoleService)
+	RegisterRoutes(
+		e,
+		*userService,
+		*roleService,
+		*permissionService,
+		*userRoleService,
+		*rolePermissionService,
+	)
 	// Register middleware
 	RegisterMiddleware(e)
 	e.Debug = cfg.App.Debug

@@ -11,6 +11,7 @@ func RegisterRoutes(
 	roleService services.RoleService,
 	permissionService services.PermissionService,
 	userRoleService services.UserRoleService,
+	rolePermissionService services.RolePermissionService,
 ) {
 	// Create user handler
 	userHandler := NewUserHandler(userService)
@@ -20,6 +21,8 @@ func RegisterRoutes(
 	roleHandler := NewRoleHandler(roleService)
 	// Create permission handler
 	permissionHandler := NewPermissionHandler(permissionService)
+	// Create role permission handler
+	rolePermissionHandler := NewRolePermissionHandler(rolePermissionService)
 
 	v1 := e.Group("/api/v1")
 
@@ -41,6 +44,11 @@ func RegisterRoutes(
 	v1.DELETE("/role/:id", roleHandler.DeleteRole)
 	v1.GET("/role/:id", roleHandler.Role)
 	v1.GET("/roles", roleHandler.Roles)
+
+	// Register role permission endpoints
+	v1.GET("/role/:role_id/permissions", rolePermissionHandler.GetRolePermissions)
+	v1.POST("/role/:role_id/permissions/assign", rolePermissionHandler.AssignPermissionsToRole)
+	v1.DELETE("/role/:role_id/permissions/revoke", rolePermissionHandler.RemovePermissionsFromRole)
 
 	// Register permission endpoints
 	v1.POST("/permission", permissionHandler.CreatePermission)
