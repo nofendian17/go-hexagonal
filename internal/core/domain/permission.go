@@ -22,6 +22,6 @@ type DeletePermissionRequest struct {
 	Id string `param:"id" validate:"required,uuid"`
 }
 
-type GetRolePermissionRequest struct {
+type GetPermissionRequest struct {
 	Id string `param:"id" validate:"required,uuid"`
 }

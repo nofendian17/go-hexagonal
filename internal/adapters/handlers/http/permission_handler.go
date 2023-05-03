@@ -77,7 +77,7 @@ func (h *PermissionHandler) Permissions(c echo.Context) error {
 }
 
 func (h *PermissionHandler) Permission(c echo.Context) error {
-	var permission domain.GetRolePermissionRequest
+	var permission domain.GetPermissionRequest
 	if err := c.Bind(&permission); err != nil {
 		return err
 	}
