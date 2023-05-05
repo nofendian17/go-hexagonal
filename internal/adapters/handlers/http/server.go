@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 	"user-svc/internal/adapters/repository/postgres"
+	"user-svc/internal/adapters/repository/redis"
 	"user-svc/internal/core/domain"
 	"user-svc/internal/core/services"
 	"user-svc/internal/shared/config"
@@ -28,8 +29,9 @@ func Start() {
 	// hex can switch different storage
 	// with implement the interface
 	repo := postgres.NewRepository(cfg)
+	cache := redis.NewRepository(cfg)
 	hasher := hash.NewHasher(cfg)
-	userService := services.NewUserService(repo, hasher)
+	userService := services.NewUserService(repo, cache, hasher)
 	roleService := services.NewRoleService(repo)
 	permissionService := services.NewPermissionService(repo)
 	userRoleService := services.NewUserRoleService(repo, userService, roleService)
