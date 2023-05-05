@@ -9,7 +9,7 @@
   },
   "database": {
     "pgsql": {
-      "host": "127.0.0.1",
+      "host": "localhost",
       "port": 5432,
       "database": "services",
       "schema": "public",
@@ -17,10 +17,12 @@
       "password": "Password123"
     },
     "redis": {
-      "host": "127.0.0.1",
+      "host": "localhost",
       "port": 6379,
+      "db": 0,
+      "password": "",
       "prefix": "app_",
-      "lifetime": 600
+      "lifetime": 6
     }
   },
   "log": {

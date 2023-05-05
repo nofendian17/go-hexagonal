@@ -34,6 +34,8 @@ type (
 		Redis struct {
 			Host     string `json:"host" validate:"required"`
 			Port     int    `json:"port" validate:"required"`
+			DB       int    `json:"db" validate:"required"`
+			Password string `json:"password" validate:"required"`
 			Prefix   string `json:"prefix" validate:"required"`
 			Lifetime int    `json:"lifetime" validate:"required"`
 		} `json:"redis" validate:"required"`

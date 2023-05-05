@@ -12,14 +12,16 @@ import (
 )
 
 type UserService struct {
-	userRepository ports.UserRepository
-	hasher         hash.Hasher
+	userRepository  ports.UserRepository
+	hasher          hash.Hasher
+	cacheRepository ports.CacheRepository
 }
 
-func NewUserService(userRepository ports.UserRepository, hasher hash.Hasher) *UserService {
+func NewUserService(userRepository ports.UserRepository, cacheRepository ports.CacheRepository, hasher hash.Hasher) *UserService {
 	return &UserService{
-		userRepository: userRepository,
-		hasher:         hasher,
+		userRepository:  userRepository,
+		cacheRepository: cacheRepository,
+		hasher:          hasher,
 	}
 }
 
