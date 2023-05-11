@@ -12,6 +12,7 @@ func RegisterRoutes(
 	permissionService services.PermissionService,
 	userRoleService services.UserRoleService,
 	rolePermissionService services.RolePermissionService,
+	authService services.AuthService,
 ) {
 	// Create user handler
 	userHandler := NewUserHandler(userService)
@@ -23,8 +24,13 @@ func RegisterRoutes(
 	permissionHandler := NewPermissionHandler(permissionService)
 	// Create role permission handler
 	rolePermissionHandler := NewRolePermissionHandler(rolePermissionService)
+	// Create auth handler
+	authHandler := NewAuthHandler(authService)
 
 	v1 := e.Group("/api/v1")
+
+	// Register auth endpoint
+	v1.POST("/auth", authHandler.Authenticate)
 
 	// Register user endpoints
 	v1.POST("/user", userHandler.CreateUser)

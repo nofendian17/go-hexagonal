@@ -15,10 +15,12 @@ import (
 
 func TestNewUserService(t *testing.T) {
 	mockUserRepository := mocksUserRepository.UserRepository{}
+	mockCacheRepository := mocksUserRepository.CacheRepository{}
 	mockHasher := mocksHasher.Hasher{}
 	type args struct {
-		repo ports.UserRepository
-		hash hash.Hasher
+		repo  ports.UserRepository
+		cache ports.CacheRepository
+		hash  hash.Hasher
 	}
 	tests := []struct {
 		name string
@@ -33,13 +35,14 @@ func TestNewUserService(t *testing.T) {
 			},
 			want: NewUserService(
 				&mockUserRepository,
+				&mockCacheRepository,
 				&mockHasher,
 			),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewUserService(tt.args.repo, tt.args.hash); !reflect.DeepEqual(got, tt.want) {
+			if got := NewUserService(tt.args.repo, tt.args.cache, tt.args.hash); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewUserService() = %v, want %v", got, tt.want)
 			}
 		})

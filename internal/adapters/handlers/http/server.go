@@ -31,11 +31,12 @@ func Start() {
 	repo := postgres.NewRepository(cfg)
 	cache := redis.NewRepository(cfg)
 	hasher := hash.NewHasher(cfg)
-	userService := services.NewUserService(repo, cache, hasher)
+	userService := services.NewUserService(repo, hasher)
 	roleService := services.NewRoleService(repo)
 	permissionService := services.NewPermissionService(repo)
 	userRoleService := services.NewUserRoleService(repo, userService, roleService)
 	rolePermissionService := services.NewRolePermissionService(repo, roleService, permissionService)
+	authService := services.NewAuthService(cfg, repo, cache, userRoleService, hasher)
 	// Register http routes
 	RegisterRoutes(
 		e,
@@ -44,6 +45,7 @@ func Start() {
 		*permissionService,
 		*userRoleService,
 		*rolePermissionService,
+		*authService,
 	)
 	// Register middleware
 	RegisterMiddleware(e)

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/google/uuid"
 	"net/http"
@@ -12,16 +13,14 @@ import (
 )
 
 type UserService struct {
-	userRepository  ports.UserRepository
-	hasher          hash.Hasher
-	cacheRepository ports.CacheRepository
+	userRepository ports.UserRepository
+	hasher         hash.Hasher
 }
 
-func NewUserService(userRepository ports.UserRepository, cacheRepository ports.CacheRepository, hasher hash.Hasher) *UserService {
+func NewUserService(userRepository ports.UserRepository, hasher hash.Hasher) *UserService {
 	return &UserService{
-		userRepository:  userRepository,
-		cacheRepository: cacheRepository,
-		hasher:          hasher,
+		userRepository: userRepository,
+		hasher:         hasher,
 	}
 }
 
@@ -32,16 +31,18 @@ func (u *UserService) CreateUser(request *domain.CreateUserRequest) (*domain.Res
 		return nil, &appError.AppError{Code: http.StatusConflict, Message: fmt.Sprintf("user %s already exist", request.Email)}
 	}
 
-	hashedPassword, salt, err := u.hasher.HashPassword(request.Password)
+	salt, err := u.hasher.GenerateRandomSalt()
 	if err != nil {
 		return nil, &appError.AppError{Code: http.StatusInternalServerError, Message: err.Error()}
 	}
+
+	hashedPassword := u.hasher.HashPassword(request.Password, salt)
 
 	user := &domain.User{
 		Id:        uuid.New().String(),
 		Name:      request.Name,
 		Email:     request.Email,
-		Salt:      salt,
+		Salt:      base64.URLEncoding.EncodeToString(salt),
 		Password:  hashedPassword,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -70,12 +71,14 @@ func (u *UserService) UpdateUser(request *domain.UpdateUserRequest) (*domain.Res
 	}
 
 	if request.Password != "" {
-		hashedPassword, salt, err := u.hasher.HashPassword(request.Password)
+		salt, err := u.hasher.GenerateRandomSalt()
 		if err != nil {
 			return nil, &appError.AppError{Code: http.StatusInternalServerError, Message: err.Error()}
 		}
+
+		hashedPassword := u.hasher.HashPassword(request.Password, salt)
 		user.Password = hashedPassword
-		user.Salt = salt
+		user.Salt = base64.URLEncoding.EncodeToString(salt)
 	}
 
 	user.Name = request.Name
