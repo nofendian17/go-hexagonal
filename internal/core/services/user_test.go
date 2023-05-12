@@ -8,15 +8,14 @@ import (
 	"testing"
 	"user-svc/internal/core/domain"
 	"user-svc/internal/core/ports"
-	mocksUserRepository "user-svc/internal/mocks/core/ports"
-	mocksHasher "user-svc/internal/mocks/shared/hash"
+	mockCore "user-svc/internal/mocks/core/ports"
+	mockShared "user-svc/internal/mocks/shared/hash"
 	"user-svc/internal/shared/hash"
 )
 
 func TestNewUserService(t *testing.T) {
-	mockUserRepository := mocksUserRepository.UserRepository{}
-	mockCacheRepository := mocksUserRepository.CacheRepository{}
-	mockHasher := mocksHasher.Hasher{}
+	mockUserRepository := mockCore.UserRepository{}
+	mockHasher := mockShared.Hasher{}
 	type args struct {
 		repo  ports.UserRepository
 		cache ports.CacheRepository
@@ -35,14 +34,13 @@ func TestNewUserService(t *testing.T) {
 			},
 			want: NewUserService(
 				&mockUserRepository,
-				&mockCacheRepository,
 				&mockHasher,
 			),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewUserService(tt.args.repo, tt.args.cache, tt.args.hash); !reflect.DeepEqual(got, tt.want) {
+			if got := NewUserService(tt.args.repo, tt.args.hash); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewUserService() = %v, want %v", got, tt.want)
 			}
 		})
@@ -58,7 +56,8 @@ func TestUserService_Create(t *testing.T) {
 		args         args
 		existResult  []interface{}
 		createResult error
-		hasherResult []interface{}
+		saltResult   []interface{}
+		hasherResult string
 		want         *domain.Response
 		wantErr      bool
 	}{
@@ -73,9 +72,10 @@ func TestUserService_Create(t *testing.T) {
 				false, nil,
 			},
 			createResult: nil,
-			hasherResult: []interface{}{
-				"hashedPassword", "salt", nil,
+			saltResult: []interface{}{
+				[]uint8("salt"), nil,
 			},
+			hasherResult: "secret",
 			want: &domain.Response{
 				Code:    http.StatusCreated,
 				Message: http.StatusText(http.StatusCreated),
@@ -90,12 +90,13 @@ func TestUserService_Create(t *testing.T) {
 				Email:    "test@mail.com",
 				Password: "secret",
 			}},
+			saltResult: []interface{}{
+				[]uint8("salt"), nil,
+			},
 			existResult: []interface{}{
 				false, errors.New("error"),
 			},
-			hasherResult: []interface{}{
-				"hashedPassword", "salt", nil,
-			},
+			hasherResult: "12345",
 			createResult: nil,
 			want:         nil,
 			wantErr:      true,
@@ -107,15 +108,16 @@ func TestUserService_Create(t *testing.T) {
 				Email:    "test@mail.com",
 				Password: "secret",
 			}},
+			saltResult: []interface{}{
+				[]uint8("salt"), nil,
+			},
 			existResult: []interface{}{
 				true, nil,
 			},
 			createResult: nil,
-			hasherResult: []interface{}{
-				"hashedPassword", "salt", nil,
-			},
-			want:    nil,
-			wantErr: true,
+			hasherResult: "secret",
+			want:         nil,
+			wantErr:      true,
 		},
 		{
 			name: "failed - hash password error",
@@ -124,15 +126,16 @@ func TestUserService_Create(t *testing.T) {
 				Email:    "test@mail.com",
 				Password: "secret",
 			}},
+			saltResult: []interface{}{
+				nil, errors.New("error"),
+			},
 			existResult: []interface{}{
 				false, nil,
 			},
 			createResult: nil,
-			hasherResult: []interface{}{
-				"", "", errors.New("hash password error"),
-			},
-			want:    nil,
-			wantErr: true,
+			hasherResult: "secret",
+			want:         nil,
+			wantErr:      true,
 		},
 		{
 			name: "failed - unable to save user data",
@@ -144,9 +147,10 @@ func TestUserService_Create(t *testing.T) {
 			existResult: []interface{}{
 				false, nil,
 			},
-			hasherResult: []interface{}{
-				"hashedPassword", "salt", nil,
+			saltResult: []interface{}{
+				[]uint8("salt"), nil,
 			},
+			hasherResult: "secret",
 			createResult: errors.New("has error"),
 			want:         nil,
 			wantErr:      true,
@@ -154,12 +158,13 @@ func TestUserService_Create(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockUserRepository := mocksUserRepository.UserRepository{}
+			mockUserRepository := mockCore.UserRepository{}
 			mockUserRepository.On("UserIsExist", mock.Anything).Return(tt.existResult...)
 			mockUserRepository.On("CreateUser", mock.Anything).Return(tt.createResult)
 
-			mockHasher := mocksHasher.Hasher{}
-			mockHasher.On("HashPassword", mock.Anything).Return(tt.hasherResult...)
+			mockHasher := mockShared.Hasher{}
+			mockHasher.On("GenerateRandomSalt").Return(tt.saltResult...)
+			mockHasher.On("HashPassword", mock.Anything, mock.Anything).Return(tt.hasherResult)
 			u := UserService{
 				userRepository: &mockUserRepository,
 				hasher:         &mockHasher,
