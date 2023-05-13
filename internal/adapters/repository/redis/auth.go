@@ -18,3 +18,20 @@ func (r *Repository) SaveToken(key string, tokenInfo *domain.TokenInfo, expirati
 	}
 	return nil
 }
+
+func (r *Repository) GetToken(key string) (*domain.TokenInfo, error) {
+	tokenInfo := &domain.TokenInfo{}
+	result, err := r.Get(key)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal([]byte(result), tokenInfo)
+	if err != nil {
+		return nil, err
+	}
+	return tokenInfo, nil
+}
+
+func (r *Repository) DeleteToken(key string) error {
+	return r.Delete(key)
+}

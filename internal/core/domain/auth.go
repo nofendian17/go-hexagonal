@@ -21,10 +21,6 @@ type GetTokenRequest struct {
 	Password string `json:"password" validate:"required"`
 }
 
-type GetRefreshTokenRequest struct {
+type RefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token" validate:"required"`
-}
-
-type GetDestroyTokenRequest struct {
-	AccessToken string `header:"Authorization" validate:"required"`
 }

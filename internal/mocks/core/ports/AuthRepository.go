@@ -15,6 +15,46 @@ type AuthRepository struct {
 	mock.Mock
 }
 
+// DeleteToken provides a mock function with given fields: key
+func (_m *AuthRepository) DeleteToken(key string) error {
+	ret := _m.Called(key)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(key)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// GetToken provides a mock function with given fields: key
+func (_m *AuthRepository) GetToken(key string) (*domain.TokenInfo, error) {
+	ret := _m.Called(key)
+
+	var r0 *domain.TokenInfo
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*domain.TokenInfo, error)); ok {
+		return rf(key)
+	}
+	if rf, ok := ret.Get(0).(func(string) *domain.TokenInfo); ok {
+		r0 = rf(key)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.TokenInfo)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(key)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SaveToken provides a mock function with given fields: key, tokenDetail, expiration
 func (_m *AuthRepository) SaveToken(key string, tokenDetail *domain.TokenInfo, expiration time.Duration) error {
 	ret := _m.Called(key, tokenDetail, expiration)

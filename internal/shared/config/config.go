@@ -18,8 +18,16 @@ type (
 		Description string `json:"description" validate:"required"`
 		Version     string `json:"version" validate:"required"`
 		Port        int    `json:"port" validate:"required"`
-		Debug       bool   `json:"debug" json:"debug" validate:"required"`
+		Debug       bool   `json:"debug" validate:"required"`
 		Key         string `json:"key" validate:"required"`
+		Auth        auth   `json:"auth" validate:"required"`
+	}
+
+	auth struct {
+		AccessKey       string `json:"accessKey" validate:"required"`
+		AccessLifeTime  int64  `json:"accessLifeTime" validate:"required"`
+		RefreshKey      string `json:"refreshKey" validate:"required"`
+		RefreshLifeTime int64  `json:"refreshLifeTime" validate:"required"`
 	}
 
 	database struct {

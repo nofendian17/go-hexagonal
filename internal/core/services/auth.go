@@ -4,22 +4,17 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"net/http"
 	"time"
 	"user-svc/internal/core/domain"
 	"user-svc/internal/core/ports"
 	"user-svc/internal/shared/config"
+	"user-svc/internal/shared/constants"
 	appError "user-svc/internal/shared/error"
 	"user-svc/internal/shared/hash"
-)
 
-const (
-	keyGenerateTime = "generateTime"
-	keyUUID         = "UUID"
-	keyExp          = "exp"
-	keyTokenType    = "tokenType"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 type AuthService struct {
@@ -124,28 +119,106 @@ func (s *AuthService) Authenticate(request *domain.GetTokenRequest) (*domain.Res
 	}, nil
 }
 
-func (s *AuthService) Refresh(request *domain.GetRefreshTokenRequest) (*domain.Response, error) {
-	//TODO implement me
-	panic("implement me")
+func (s *AuthService) Refresh(request *domain.RefreshTokenRequest) (*domain.Response, error) {
+	secretKey := s.config.App.Auth.RefreshKey
+	token, err := s.parseToken(request.RefreshToken, secretKey)
+	if err != nil || !token.Valid {
+		return nil, &appError.AppError{Code: http.StatusUnauthorized, Message: "invalid refresh token"}
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, &appError.AppError{Code: http.StatusUnauthorized, Message: "invalid refresh token"}
+	}
+
+	authID := claims[constants.KeyAuthID].(string)
+
+	tokenInfo, err := s.authRepository.GetToken(authID)
+	if err != nil {
+		return nil, &appError.AppError{Code: http.StatusUnauthorized, Message: "invalid refresh token"}
+	}
+
+	regenerateToken := jwt.New(jwt.SigningMethodHS256)
+	accessUUID, generateTime, accessToken, authTokenExpiredIn, err := s.crateAccessToken(regenerateToken)
+	if err != nil {
+		return nil, &appError.AppError{Code: http.StatusInternalServerError, Message: err.Error()}
+	}
+
+	refreshUUID, refreshToken, refreshTokenExpiredIn, err := s.createRefreshToken(regenerateToken, generateTime)
+	if err != nil {
+		return nil, &appError.AppError{Code: http.StatusInternalServerError, Message: err.Error()}
+	}
+
+	accessExpiresIn := time.Duration(authTokenExpiredIn) * time.Millisecond
+	refreshExpiresIn := time.Duration(refreshTokenExpiredIn) * time.Millisecond
+
+	saveTokenErrs := make(chan error, 2)
+	deleteTokenErr := make(chan error, 1)
+	go func() {
+		saveTokenErrs <- s.authRepository.SaveToken(accessUUID, tokenInfo, accessExpiresIn)
+	}()
+
+	go func() {
+		saveTokenErrs <- s.authRepository.SaveToken(refreshUUID, tokenInfo, refreshExpiresIn)
+	}()
+
+	for i := 0; i < 2; i++ {
+		if err := <-saveTokenErrs; err != nil {
+			return nil, &appError.AppError{Code: http.StatusInternalServerError, Message: err.Error()}
+		}
+	}
+
+	go func() {
+		deleteTokenErr <- s.authRepository.DeleteToken(authID)
+	}()
+
+	if err := <-deleteTokenErr; err != nil {
+		return nil, &appError.AppError{Code: http.StatusInternalServerError, Message: err.Error()}
+	}
+
+	authToken := domain.Token{
+		AccessToken:      accessToken,
+		AccessExpiresIn:  accessExpiresIn,
+		RefreshToken:     refreshToken,
+		RefreshExpiresIn: refreshExpiresIn,
+		CreatedDate:      time.Unix(generateTime, 0),
+	}
+
+	return &domain.Response{
+		Code:    http.StatusOK,
+		Message: http.StatusText(http.StatusOK),
+		Data:    authToken,
+	}, nil
 }
 
-func (s *AuthService) Logout(request *domain.GetDestroyTokenRequest) (*domain.Response, error) {
-	//TODO implement me
-	panic("implement me")
+func (s *AuthService) Logout(authID string) (*domain.Response, error) {
+	deleteTokenErr := make(chan error, 1)
+	go func() {
+		deleteTokenErr <- s.authRepository.DeleteToken(authID)
+	}()
+
+	if err := <-deleteTokenErr; err != nil {
+		return nil, &appError.AppError{Code: http.StatusInternalServerError, Message: err.Error()}
+	}
+	return &domain.Response{
+		Code:    http.StatusOK,
+		Message: http.StatusText(http.StatusOK),
+		Data:    nil,
+	}, nil
 }
 
 func (s *AuthService) crateAccessToken(token *jwt.Token) (accessUUID string, generateTime int64, tokenString string, expiredIn int64, err error) {
-	secretKey := s.config.App.Key
+	secretKey := s.config.App.Auth.AccessKey
 	accessUUID = uuid.New().String()
-	expiredAtTime := time.Now().Add(time.Hour * time.Duration(1))
+	expiredAtTime := time.Now().Add(time.Minute * time.Duration(s.config.App.Auth.AccessLifeTime))
 	expiredIn = expiredAtTime.Sub(time.Now()).Milliseconds()
 	generateTime = time.Now().Unix()
 
 	token.Claims = jwt.MapClaims{
-		keyTokenType:    "access",
-		keyGenerateTime: generateTime,
-		keyUUID:         accessUUID,
-		keyExp:          expiredAtTime.Unix(),
+		constants.KeyTokenType:    "access",
+		constants.KeyGenerateTime: generateTime,
+		constants.KeyAuthID:       accessUUID,
+		constants.KeyExp:          expiredAtTime.Unix(),
 	}
 
 	tokenString, err = token.SignedString([]byte(secretKey))
@@ -153,15 +226,15 @@ func (s *AuthService) crateAccessToken(token *jwt.Token) (accessUUID string, gen
 }
 
 func (s *AuthService) createRefreshToken(token *jwt.Token, generateTime int64) (refreshUUID string, refreshToken string, expiredIn int64, err error) {
-	secretKey := s.config.App.Key
+	secretKey := s.config.App.Auth.RefreshKey
 	refreshUUID = uuid.New().String()
-	expiredAtTime := time.Now().Add(time.Hour * time.Duration(24))
+	expiredAtTime := time.Now().Add(time.Minute * time.Duration(s.config.App.Auth.RefreshLifeTime))
 	expiredIn = expiredAtTime.Sub(time.Now()).Milliseconds()
 	token.Claims = jwt.MapClaims{
-		keyTokenType:    "refresh",
-		keyGenerateTime: generateTime,
-		keyUUID:         refreshUUID,
-		keyExp:          expiredAtTime.Unix(),
+		constants.KeyTokenType:    "refresh",
+		constants.KeyGenerateTime: generateTime,
+		constants.KeyAuthID:       refreshUUID,
+		constants.KeyExp:          expiredAtTime.Unix(),
 	}
 	refreshToken, err = token.SignedString([]byte(secretKey))
 	return
@@ -178,4 +251,17 @@ func (s *AuthService) getUserRoles(userID string) ([]*domain.Role, error) {
 	}
 
 	return roles.Data.([]*domain.Role), nil
+}
+
+func (s *AuthService) parseToken(tokenString, secretKey string) (*jwt.Token, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(secretKey), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return token, nil
 }

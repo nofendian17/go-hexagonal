@@ -38,8 +38,10 @@ func Start() {
 	rolePermissionService := services.NewRolePermissionService(repo, roleService, permissionService)
 	authService := services.NewAuthService(cfg, repo, cache, userRoleService, hasher)
 	// Register http routes
-	RegisterRoutes(
+	RegisterHTTPRoutes(
 		e,
+		cfg,
+		cache,
 		*userService,
 		*roleService,
 		*permissionService,
@@ -47,8 +49,8 @@ func Start() {
 		*rolePermissionService,
 		*authService,
 	)
-	// Register middleware
-	RegisterMiddleware(e)
+	// Register app middleware
+	RegisterAppMiddleware(e)
 	e.Debug = cfg.App.Debug
 	e.Validator = &validatorHelper.CustomValidator{
 		Validator: validator.New(),

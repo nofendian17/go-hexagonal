@@ -39,25 +39,25 @@ func (_m *AuthService) Authenticate(request *domain.GetTokenRequest) (*domain.Re
 	return r0, r1
 }
 
-// Logout provides a mock function with given fields: request
-func (_m *AuthService) Logout(request *domain.GetDestroyTokenRequest) (*domain.Response, error) {
-	ret := _m.Called(request)
+// Logout provides a mock function with given fields: authID
+func (_m *AuthService) Logout(authID string) (*domain.Response, error) {
+	ret := _m.Called(authID)
 
 	var r0 *domain.Response
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*domain.GetDestroyTokenRequest) (*domain.Response, error)); ok {
-		return rf(request)
+	if rf, ok := ret.Get(0).(func(string) (*domain.Response, error)); ok {
+		return rf(authID)
 	}
-	if rf, ok := ret.Get(0).(func(*domain.GetDestroyTokenRequest) *domain.Response); ok {
-		r0 = rf(request)
+	if rf, ok := ret.Get(0).(func(string) *domain.Response); ok {
+		r0 = rf(authID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*domain.Response)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*domain.GetDestroyTokenRequest) error); ok {
-		r1 = rf(request)
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(authID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -66,15 +66,15 @@ func (_m *AuthService) Logout(request *domain.GetDestroyTokenRequest) (*domain.R
 }
 
 // Refresh provides a mock function with given fields: request
-func (_m *AuthService) Refresh(request *domain.GetRefreshTokenRequest) (*domain.Response, error) {
+func (_m *AuthService) Refresh(request *domain.RefreshTokenRequest) (*domain.Response, error) {
 	ret := _m.Called(request)
 
 	var r0 *domain.Response
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*domain.GetRefreshTokenRequest) (*domain.Response, error)); ok {
+	if rf, ok := ret.Get(0).(func(*domain.RefreshTokenRequest) (*domain.Response, error)); ok {
 		return rf(request)
 	}
-	if rf, ok := ret.Get(0).(func(*domain.GetRefreshTokenRequest) *domain.Response); ok {
+	if rf, ok := ret.Get(0).(func(*domain.RefreshTokenRequest) *domain.Response); ok {
 		r0 = rf(request)
 	} else {
 		if ret.Get(0) != nil {
@@ -82,7 +82,7 @@ func (_m *AuthService) Refresh(request *domain.GetRefreshTokenRequest) (*domain.
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*domain.GetRefreshTokenRequest) error); ok {
+	if rf, ok := ret.Get(1).(func(*domain.RefreshTokenRequest) error); ok {
 		r1 = rf(request)
 	} else {
 		r1 = ret.Error(1)

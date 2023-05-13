@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"user-svc/internal/core/domain"
@@ -73,6 +74,8 @@ func (h *UserHandler) DeleteUser(c echo.Context) error {
 
 func (h *UserHandler) Users(c echo.Context) error {
 	result, err := h.userService.GetUsers()
+	key := c.Get("userID")
+	fmt.Println(key)
 	if err != nil {
 		return err
 	}
