@@ -5,7 +5,13 @@
     "version": "1.0.0",
     "port": 3000,
     "debug": true,
-    "key": "YOUR_SECRET_KEY"
+    "key": "YOUR_SECRET_KEY",
+    "auth": {
+      "accessKey": "YOUR_ACCESS_KEY",
+      "accessLifeTime": 1440,
+      "refreshKey": "YOUR_REFRESH_KEY",
+      "refreshLifeTime": 15
+    }
   },
   "database": {
     "pgsql": {
@@ -22,7 +28,7 @@
       "db": 0,
       "password": "",
       "prefix": "app_",
-      "lifetime": 6
+      "lifetime": 600
     }
   },
   "log": {

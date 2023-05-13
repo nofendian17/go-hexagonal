@@ -328,8 +328,8 @@ func TestUserByEmail(t *testing.T) {
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
-	row := sqlmock.NewRows([]string{"id", "name", "email", "active", "created_at", "updated_at"}).
-		AddRow(expectedUser.Id, expectedUser.Name, expectedUser.Email, expectedUser.Active, expectedUser.CreatedAt, expectedUser.UpdatedAt)
+	row := sqlmock.NewRows([]string{"id", "name", "email", "active", "salt", "password", "created_at", "updated_at"}).
+		AddRow(expectedUser.Id, expectedUser.Name, expectedUser.Email, expectedUser.Active, expectedUser.Salt, expectedUser.Password, expectedUser.CreatedAt, expectedUser.UpdatedAt)
 
 	// Set up the mock DB to return the expected row data
 	mock.ExpectQuery("^SELECT (.+) FROM users WHERE email = (.+)$").
