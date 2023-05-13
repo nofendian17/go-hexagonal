@@ -9,23 +9,39 @@ type Hasher struct {
 	mock.Mock
 }
 
-// CheckPassword provides a mock function with given fields: password, hashedPassword, salt
-func (_m *Hasher) CheckPassword(password string, hashedPassword string, salt string) (bool, error) {
-	ret := _m.Called(password, hashedPassword, salt)
+// CheckPassword provides a mock function with given fields: hashedPassword, currentPassword, salt
+func (_m *Hasher) CheckPassword(hashedPassword string, currentPassword string, salt []byte) bool {
+	ret := _m.Called(hashedPassword, currentPassword, salt)
 
 	var r0 bool
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, string) (bool, error)); ok {
-		return rf(password, hashedPassword, salt)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, string) bool); ok {
-		r0 = rf(password, hashedPassword, salt)
+	if rf, ok := ret.Get(0).(func(string, string, []byte) bool); ok {
+		r0 = rf(hashedPassword, currentPassword, salt)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
-		r1 = rf(password, hashedPassword, salt)
+	return r0
+}
+
+// GenerateRandomSalt provides a mock function with given fields:
+func (_m *Hasher) GenerateRandomSalt() ([]byte, error) {
+	ret := _m.Called()
+
+	var r0 []byte
+	var r1 error
+	if rf, ok := ret.Get(0).(func() ([]byte, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() []byte); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -33,35 +49,18 @@ func (_m *Hasher) CheckPassword(password string, hashedPassword string, salt str
 	return r0, r1
 }
 
-// HashPassword provides a mock function with given fields: password
-func (_m *Hasher) HashPassword(password string) (string, string, error) {
-	ret := _m.Called(password)
+// HashPassword provides a mock function with given fields: password, salt
+func (_m *Hasher) HashPassword(password string, salt []byte) string {
+	ret := _m.Called(password, salt)
 
 	var r0 string
-	var r1 string
-	var r2 error
-	if rf, ok := ret.Get(0).(func(string) (string, string, error)); ok {
-		return rf(password)
-	}
-	if rf, ok := ret.Get(0).(func(string) string); ok {
-		r0 = rf(password)
+	if rf, ok := ret.Get(0).(func(string, []byte) string); ok {
+		r0 = rf(password, salt)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(string) string); ok {
-		r1 = rf(password)
-	} else {
-		r1 = ret.Get(1).(string)
-	}
-
-	if rf, ok := ret.Get(2).(func(string) error); ok {
-		r2 = rf(password)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
+	return r0
 }
 
 type mockConstructorTestingTNewHasher interface {

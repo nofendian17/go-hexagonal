@@ -110,11 +110,11 @@ func (r *Repository) GetUserByID(id string) (*domain.User, error) {
 }
 
 func (r *Repository) GetUserByEmail(email string) (*domain.User, error) {
-	query := "SELECT id, name, email, active, created_at, updated_at FROM users WHERE email = $1"
+	query := "SELECT id, name, email, active, salt, password, created_at, updated_at FROM users WHERE email = $1"
 	row := r.db.QueryRow(query, email)
 
 	var user domain.User
-	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.Active, &user.CreatedAt, &user.UpdatedAt)
+	err := row.Scan(&user.Id, &user.Name, &user.Email, &user.Active, &user.Salt, &user.Password, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
