@@ -8,9 +8,9 @@
     "key": "YOUR_SECRET_KEY",
     "auth": {
       "accessKey": "YOUR_ACCESS_KEY",
-      "accessLifeTime": 1440,
+      "accessLifeTime": 15,
       "refreshKey": "YOUR_REFRESH_KEY",
-      "refreshLifeTime": 15
+      "refreshLifeTime": 1440
     }
   },
   "database": {
@@ -32,9 +32,7 @@
     }
   },
   "log": {
-    "fileTdrLocation": "logs/tdr.log",
-    "fileLocation": "logs/sys.log",
-    "fileMaxAge": 30,
+    "fileLocation": "logs",
     "stdout": false
   }
 }

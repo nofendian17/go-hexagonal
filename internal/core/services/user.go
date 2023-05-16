@@ -10,17 +10,20 @@ import (
 	"user-svc/internal/core/ports"
 	appError "user-svc/internal/shared/error"
 	"user-svc/internal/shared/hash"
+	"user-svc/internal/shared/logger"
 )
 
 type UserService struct {
 	userRepository ports.UserRepository
 	hasher         hash.Hasher
+	logger         logger.Logger
 }
 
-func NewUserService(userRepository ports.UserRepository, hasher hash.Hasher) *UserService {
+func NewUserService(userRepository ports.UserRepository, hasher hash.Hasher, logger logger.Logger) *UserService {
 	return &UserService{
 		userRepository: userRepository,
 		hasher:         hasher,
+		logger:         logger,
 	}
 }
 

@@ -19,6 +19,14 @@ func (r *Repository) SaveToken(key string, tokenInfo *domain.TokenInfo, expirati
 	return nil
 }
 
+func (r *Repository) TokenExist(key string) (bool, error) {
+	isExist, err := r.Exists(key)
+	if err != nil {
+		return false, err
+	}
+	return isExist, nil
+}
+
 func (r *Repository) GetToken(key string) (*domain.TokenInfo, error) {
 	tokenInfo := &domain.TokenInfo{}
 	result, err := r.Get(key)

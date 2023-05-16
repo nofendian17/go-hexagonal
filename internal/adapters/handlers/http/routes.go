@@ -38,7 +38,8 @@ func RegisterHTTPRoutes(
 	}
 
 	jwtMiddleware := &middleware.JWTMiddleware{
-		Authenticator: authenticator,
+		Authenticator:  authenticator,
+		AuthRepository: authRepository,
 	}
 
 	// create a new instance of the permission middleware
