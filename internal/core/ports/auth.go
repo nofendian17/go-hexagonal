@@ -13,6 +13,7 @@ type AuthService interface {
 
 type AuthRepository interface {
 	SaveToken(key string, tokenDetail *domain.TokenInfo, expiration time.Duration) error
+	TokenExist(key string) (bool, error)
 	GetToken(key string) (*domain.TokenInfo, error)
 	DeleteToken(key string) error
 }

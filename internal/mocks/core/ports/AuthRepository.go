@@ -69,6 +69,30 @@ func (_m *AuthRepository) SaveToken(key string, tokenDetail *domain.TokenInfo, e
 	return r0
 }
 
+// TokenExist provides a mock function with given fields: key
+func (_m *AuthRepository) TokenExist(key string) (bool, error) {
+	ret := _m.Called(key)
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (bool, error)); ok {
+		return rf(key)
+	}
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(key)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(key)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 type mockConstructorTestingTNewAuthRepository interface {
 	mock.TestingT
 	Cleanup(func())

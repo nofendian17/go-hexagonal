@@ -18,6 +18,7 @@ import (
 	"user-svc/internal/shared/config"
 	appError "user-svc/internal/shared/error"
 	"user-svc/internal/shared/hash"
+	"user-svc/internal/shared/logger"
 	validatorHelper "user-svc/internal/shared/validator"
 )
 
@@ -31,7 +32,9 @@ func Start() {
 	repo := postgres.NewRepository(cfg)
 	cache := redis.NewRepository(cfg)
 	hasher := hash.NewHasher(cfg)
-	userService := services.NewUserService(repo, hasher)
+	log := logger.NewLogger(cfg)
+
+	userService := services.NewUserService(repo, hasher, log)
 	roleService := services.NewRoleService(repo)
 	permissionService := services.NewPermissionService(repo)
 	userRoleService := services.NewUserRoleService(repo, userService, roleService)
@@ -50,7 +53,7 @@ func Start() {
 		*authService,
 	)
 	// Register app middleware
-	RegisterAppMiddleware(e)
+	RegisterAppMiddleware(e, log)
 	e.Debug = cfg.App.Debug
 	e.Validator = &validatorHelper.CustomValidator{
 		Validator: validator.New(),
@@ -66,6 +69,12 @@ func Start() {
 }
 
 func errorHandler(err error, c echo.Context) {
+
+	if c.Response().Committed {
+		// If the response has already been sent, return without doing anything
+		return
+	}
+
 	var appErr *appError.AppError
 	if errors.As(err, &appErr) {
 		c.JSON(appErr.Code, domain.Response{
