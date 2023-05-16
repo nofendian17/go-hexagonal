@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"user-svc/internal/core/ports"
 	"user-svc/internal/shared/constants"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -25,7 +26,8 @@ type Middleware interface {
 }
 
 type JWTMiddleware struct {
-	Authenticator JWTAuthenticator
+	Authenticator  JWTAuthenticator
+	AuthRepository ports.AuthRepository
 }
 
 func (a *JWTAuthenticatorImpl) Authenticate(c echo.Context) (*jwt.Token, error) {
@@ -63,7 +65,17 @@ func (m *JWTMiddleware) Handle(next echo.HandlerFunc) echo.HandlerFunc {
 			})
 		}
 
-		c.Set(constants.KeyAuthID, claims[constants.KeyAuthID].(string))
+		authID := claims[constants.KeyAuthID].(string)
+
+		isExist, err := m.AuthRepository.TokenExist(authID)
+		if err != nil || !isExist {
+			return c.JSON(http.StatusUnauthorized, &appError.AppError{
+				Code:    http.StatusUnauthorized,
+				Message: "invalid authorization token",
+			})
+		}
+
+		c.Set(constants.KeyAuthID, authID)
 
 		return next(c)
 	}

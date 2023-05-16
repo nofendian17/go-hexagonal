@@ -3,14 +3,13 @@ package config
 import (
 	"fmt"
 	"github.com/spf13/viper"
-	"time"
 )
 
 type (
 	Config struct {
 		App      app      `json:"app" validate:"required"`
 		Database database `json:"database" validate:"required"`
-		Log      log      `json:"log" validate:"required"`
+		Log      log      `json:"logger" validate:"required"`
 	}
 
 	app struct {
@@ -50,10 +49,8 @@ type (
 	}
 
 	log struct {
-		FileLocation    string        `json:"fileLocation" validate:"required"`
-		FileTdrLocation string        `json:"fileTdrLocation" validate:"required"`
-		FileMaxAge      time.Duration `json:"fileMaxAge" validate:"required"`
-		Stdout          bool          `json:"stdout"`
+		FileLocation string `json:"fileLocation" validate:"required"`
+		Stdout       bool   `json:"stdout"`
 	}
 )
 
