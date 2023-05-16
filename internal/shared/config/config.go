@@ -9,7 +9,7 @@ type (
 	Config struct {
 		App      app      `json:"app" validate:"required"`
 		Database database `json:"database" validate:"required"`
-		Log      log      `json:"logger" validate:"required"`
+		Log      log      `json:"log" validate:"required"`
 	}
 
 	app struct {
