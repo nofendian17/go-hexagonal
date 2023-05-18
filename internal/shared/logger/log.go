@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 	"user-svc/internal/shared/config"
+	"user-svc/internal/shared/open_search"
 
 	"github.com/sirupsen/logrus"
 )
@@ -25,11 +26,12 @@ type Logger interface {
 	Info(args ...interface{})
 	Debug(args ...interface{})
 	Trace(args ...interface{})
-	WithFields(fields Fields) logrus.FieldLogger
+	WithFields(fields Fields) *logrus.Entry
 }
 
 type LogWrapper struct {
-	logger *logrus.Logger
+	logger           *logrus.Logger
+	openSearchClient *open_search.OpenSearchClient
 }
 
 func (l *LogWrapper) Panic(args ...interface{}) {
@@ -60,13 +62,15 @@ func (l *LogWrapper) Trace(args ...interface{}) {
 	l.logger.Trace(args...)
 }
 
-func (l *LogWrapper) WithFields(fields Fields) logrus.FieldLogger {
+func (l *LogWrapper) WithFields(fields Fields) *logrus.Entry {
 	return l.logger.WithFields(fields)
 }
 
-func NewLogger(config *config.Config) *LogWrapper {
+func NewLogger(config *config.Config, openSearchClient *open_search.OpenSearchClient) *LogWrapper {
 	fileLocation := config.Log.FileLocation
 	stdout := config.Log.Stdout
+	indexName := config.App.Name
+	enable := config.Log.OpenSearch.Enable
 
 	var out io.Writer
 	if stdout {
@@ -109,11 +113,24 @@ func NewLogger(config *config.Config) *LogWrapper {
 	logger.SetReportCaller(true)
 	logger.SetOutput(out)
 	logger.SetLevel(level)
-	logger.SetFormatter(&logrus.TextFormatter{
+	logger.SetFormatter(&logrus.JSONFormatter{
 		TimestampFormat:  time.RFC3339Nano,
-		DisableColors:    false,
 		DisableTimestamp: false,
+		FieldMap: logrus.FieldMap{
+			logrus.FieldKeyTime:  "@timestamp",
+			logrus.FieldKeyLevel: "@level",
+			logrus.FieldKeyMsg:   "@message",
+			logrus.FieldKeyFunc:  "@caller",
+		},
 	})
+
+	if enable {
+		// Create the OpenSearch hook
+		openSearchHook := open_search.NewOpenSearchHook(openSearchClient.Client, indexName)
+
+		// Add the OpenSearch hook to the logger
+		logger.AddHook(openSearchHook)
+	}
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -121,5 +138,8 @@ func NewLogger(config *config.Config) *LogWrapper {
 		}
 	}()
 
-	return &LogWrapper{logger: logger}
+	return &LogWrapper{
+		logger:           logger,
+		openSearchClient: openSearchClient,
+	}
 }

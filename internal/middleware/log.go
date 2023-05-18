@@ -32,6 +32,7 @@ func (l *loggingMiddleware) LogRequestAndResponse(next echo.HandlerFunc) echo.Ha
 			Handler: func(c echo.Context, reqBody, resBody []byte) {
 				// Combine request and response into a single log entry
 				logEntry := logger.Fields{
+					"log_type":      "TDR",
 					"method":        c.Request().Method,
 					"uri":           c.Request().RequestURI,
 					"remote_ip":     c.RealIP(),

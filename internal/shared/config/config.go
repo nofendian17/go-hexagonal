@@ -49,8 +49,18 @@ type (
 	}
 
 	log struct {
-		FileLocation string `json:"fileLocation" validate:"required"`
-		Stdout       bool   `json:"stdout"`
+		FileLocation string     `json:"fileLocation" validate:"required"`
+		Stdout       bool       `json:"stdout" validate:"required"`
+		OpenSearch   openSearch `json:"openSearch" validate:"required"`
+	}
+
+	openSearch struct {
+		Enable     bool   `json:"enable" validate:"required"`
+		HttpSecure bool   `json:"HttpSecure" validate:"required"`
+		Host       string `json:"host" validate:"required"`
+		Port       int    `json:"port" validate:"required"`
+		Username   string `json:"username" validate:"required"`
+		Password   string `json:"password" validate:"required"`
 	}
 )
 

@@ -1,0 +1,144 @@
+version: '3.8'
+services:
+  user-svc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    expose:
+      - "3000"
+#    volumes:
+#      - ./configs:/app/user-svc/configs
+    stdin_open: true
+    tty: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: always
+    networks:
+      - user-svc-net
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=Password123
+      - POSTGRES_DB=services
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U root -d services" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - user-svc-net
+
+  migrate:
+    image: migrate/migrate
+    volumes:
+      - ./database/migrations:/migrations
+    entrypoint: ["migrate","-source","file:///migrations","-database", "postgresql://root:Password123@postgres:5432/services?sslmode=disable&search_path=public", "-verbose"]
+    command: ["up"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - user-svc-net
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - "8000:8080"
+    expose:
+      - "8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - user-svc-net
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - user-svc-net
+
+  opensearch-node1:
+    image: opensearchproject/opensearch:latest
+    container_name: opensearch-node1
+    environment:
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch-node1
+      - discovery.seed_hosts=opensearch-node1,opensearch-node2
+      - cluster.initial_cluster_manager_nodes=opensearch-node1,opensearch-node2
+      - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536 # maximum number of open files for the OpenSearch user, set to at least 65536 on modern systems
+        hard: 65536
+    volumes:
+      - opensearch-data1:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+      - "9600:9600" # required for Performance Analyzer
+    networks:
+      - user-svc-net
+  opensearch-node2:
+      image: opensearchproject/opensearch:latest
+      container_name: opensearch-node2
+      environment:
+        - cluster.name=opensearch-cluster
+        - node.name=opensearch-node2
+        - discovery.seed_hosts=opensearch-node1,opensearch-node2
+        - cluster.initial_cluster_manager_nodes=opensearch-node1,opensearch-node2
+        - bootstrap.memory_lock=true
+        - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      ulimits:
+        memlock:
+          soft: -1
+          hard: -1
+        nofile:
+          soft: 65536
+          hard: 65536
+      volumes:
+        - opensearch-data2:/usr/share/opensearch/data
+      networks:
+        - user-svc-net
+  opensearch-dashboards:
+      image: opensearchproject/opensearch-dashboards:latest
+      container_name: opensearch-dashboards
+      ports:
+        - "5601:5601"
+      expose:
+        - "5601"
+      environment:
+        OPENSEARCH_HOSTS: '["https://opensearch-node1:9200","https://opensearch-node2:9200"]'
+      networks:
+        - user-svc-net
+
+volumes:
+  postgres-data:
+  redis-data:
+  opensearch-data1:
+  opensearch-data2:
+
+networks:
+  user-svc-net:
