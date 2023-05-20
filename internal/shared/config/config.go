@@ -49,9 +49,15 @@ type (
 	}
 
 	log struct {
-		FileLocation string     `json:"fileLocation" validate:"required"`
-		Stdout       bool       `json:"stdout" validate:"required"`
-		OpenSearch   openSearch `json:"openSearch" validate:"required"`
+		File       logFile    `json:"file" validate:"required"`
+		OpenSearch openSearch `json:"openSearch" validate:"required"`
+	}
+
+	logFile struct {
+		FileLocation string `json:"fileLocation" validate:"required"`
+		Enable       bool   `json:"enable" validate:"required"`
+		MaxAge       int    `json:"maxAge" validate:"required"`
+		Compress     bool   `json:"compress" validate:"required"`
 	}
 
 	openSearch struct {

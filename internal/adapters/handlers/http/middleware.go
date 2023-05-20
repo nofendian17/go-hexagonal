@@ -7,7 +7,7 @@ import (
 	"user-svc/internal/shared/logger"
 )
 
-func RegisterAppMiddleware(e *echo.Echo, logger *logger.LogWrapper) {
+func RegisterAppMiddleware(e *echo.Echo, logger *logger.LoggerWrapper) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 

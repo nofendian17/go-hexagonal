@@ -32,14 +32,18 @@
     }
   },
   "log": {
-    "fileLocation": "logs",
-    "stdout": false,
+    "file": {
+      "fileLocation": "logs/app.log",
+      "enable": true,
+      "maxAge": 1,
+      "compress": true
+    },
     "openSearch": {
       "HttpSecure": true,
       "enable": true,
       "host": "opensearch-node1",
       "port": 9200,
-      "username" : "admin",
+      "username": "admin",
       "password": "admin"
     }
   }

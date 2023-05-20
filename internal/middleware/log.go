@@ -12,10 +12,10 @@ type LoggingMiddleware interface {
 }
 
 type loggingMiddleware struct {
-	logger *logger.LogWrapper
+	logger *logger.LoggerWrapper
 }
 
-func NewLoggingMiddleware(logger *logger.LogWrapper) LoggingMiddleware {
+func NewLoggingMiddleware(logger *logger.LoggerWrapper) LoggingMiddleware {
 	return &loggingMiddleware{
 		logger: logger,
 	}
@@ -31,7 +31,7 @@ func (l *loggingMiddleware) LogRequestAndResponse(next echo.HandlerFunc) echo.Ha
 			Skipper: nil,
 			Handler: func(c echo.Context, reqBody, resBody []byte) {
 				// Combine request and response into a single log entry
-				logEntry := logger.Fields{
+				logEntry := logger.FieldMap{
 					"log_type":      "TDR",
 					"method":        c.Request().Method,
 					"uri":           c.Request().RequestURI,

@@ -25,9 +25,13 @@ func (h *OpenSearchHook) Fire(entry *logrus.Entry) error {
 			Body:  strings.NewReader(log),
 		}
 
-		_, err := document.Do(context.Background(), h.Client)
+		res, err := document.Do(context.Background(), h.Client)
 		if err != nil {
 			logrus.Errorf("failed to push log to OpenSearch: %v", err)
+		}
+		err = res.Body.Close()
+		if err != nil {
+			logrus.Errorf("failed to clos body to OpenSearch: %v", err)
 		}
 	}()
 

@@ -3,7 +3,7 @@ services:
   user-svc:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: DockerFile
     ports:
       - "3000:3000"
     expose:
@@ -16,7 +16,7 @@ services:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     restart: always
     networks:
       - user-svc-net
@@ -74,6 +74,8 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
     networks:
       - user-svc-net
 
