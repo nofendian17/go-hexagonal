@@ -19,6 +19,7 @@ import (
 	appError "user-svc/internal/shared/error"
 	"user-svc/internal/shared/hash"
 	"user-svc/internal/shared/logger"
+	"user-svc/internal/shared/open_search"
 	validatorHelper "user-svc/internal/shared/validator"
 )
 
@@ -32,7 +33,8 @@ func Start() {
 	repo := postgres.NewRepository(cfg)
 	cache := redis.NewRepository(cfg)
 	hasher := hash.NewHasher(cfg)
-	log := logger.NewLogger(cfg)
+	openSearch := open_search.NewClient(cfg)
+	log := logger.NewLogger(cfg, openSearch)
 
 	userService := services.NewUserService(repo, hasher, log)
 	roleService := services.NewRoleService(repo)
