@@ -62,15 +62,15 @@ func (_m *Logger) Warn(args ...interface{}) {
 }
 
 // WithFields provides a mock function with given fields: fields
-func (_m *Logger) WithFields(fields map[string]interface{}) logrus.FieldLogger {
+func (_m *Logger) WithFields(fields map[string]interface{}) *logrus.Entry {
 	ret := _m.Called(fields)
 
-	var r0 logrus.FieldLogger
-	if rf, ok := ret.Get(0).(func(map[string]interface{}) logrus.FieldLogger); ok {
+	var r0 *logrus.Entry
+	if rf, ok := ret.Get(0).(func(map[string]interface{}) *logrus.Entry); ok {
 		r0 = rf(fields)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(logrus.FieldLogger)
+			r0 = ret.Get(0).(*logrus.Entry)
 		}
 	}
 
