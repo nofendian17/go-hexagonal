@@ -8,6 +8,15 @@ import (
 	"user-svc/internal/shared/config"
 )
 
+const (
+	apiPrefix           = "/api/v1"
+	usersPath           = "/users"
+	rolesPath           = "/roles"
+	permissionsPath     = "/permissions"
+	userRolesPath       = "/user/:user_id/roles"
+	rolePermissionsPath = "/role/:role_id/permissions"
+)
+
 func RegisterHTTPRoutes(
 	e *echo.Echo,
 	cfg *config.Config,
@@ -51,54 +60,47 @@ func RegisterHTTPRoutes(
 		Checker: checker,
 	}
 
-	// define func permission example: route GET "/users" only can access by user has permission "list-user"
-	// common defined in db
-	// - list-{module-name}
-	// - view-{module-name}
-	// - create-{module-name}
-	// - update-{module-name}
-	// - delete-{module-name}
-
-	getUsersPermissionFunc := func(next echo.HandlerFunc) echo.HandlerFunc {
-		return permissionMiddleware.Handle(next, "list-user")
-	}
-
-	v1 := e.Group("/api/v1")
+	v1 := e.Group(apiPrefix)
 
 	// Register auth endpoint
-	auth := v1.Group("/auth")
-	auth.POST("/login", authHandler.Authenticate)
-	auth.POST("/refresh", authHandler.Refresh)
-	auth.DELETE("/logout", authHandler.Logout, jwtMiddleware.Handle)
+	authGroup := v1.Group("/auth")
+	authGroup.POST("/login", authHandler.Authenticate)
+	authGroup.POST("/refresh", authHandler.Refresh)
+	authGroup.DELETE("/logout", authHandler.Logout, jwtMiddleware.Handle)
 
 	// Register user endpoints
-	v1.POST("/user", userHandler.CreateUser, jwtMiddleware.Handle)
-	v1.PUT("/user/:id", userHandler.UpdateUser, jwtMiddleware.Handle)
-	v1.DELETE("/user/:id", userHandler.DeleteUser, jwtMiddleware.Handle)
-	v1.GET("/user/:id", userHandler.User, jwtMiddleware.Handle)
-	v1.GET("/users", userHandler.Users, jwtMiddleware.Handle, getUsersPermissionFunc)
+	userGroup := v1.Group(usersPath, jwtMiddleware.Handle)
+	userGroup.POST("", userHandler.CreateUser, permissionMiddleware.Handle("Create-User"))
+	userGroup.PUT("/:id", userHandler.UpdateUser, permissionMiddleware.Handle("Update-User"))
+	userGroup.DELETE("/:id", userHandler.DeleteUser, permissionMiddleware.Handle("Delete-User"))
+	userGroup.GET("/:id", userHandler.User, permissionMiddleware.Handle("View-User"))
+	userGroup.GET("", userHandler.Users, permissionMiddleware.Handle("List-User"))
 
 	// Register user role endpoints
-	v1.GET("/user/:user_id/roles", userRoleHandler.GetUserRoles, jwtMiddleware.Handle)
-	v1.POST("/user/:user_id/roles/assign", userRoleHandler.AssignRolesToUser, jwtMiddleware.Handle)
-	v1.DELETE("/user/:user_id/roles/revoke", userRoleHandler.RemoveRolesFromUser, jwtMiddleware.Handle)
+	userRoleGroup := v1.Group(userRolesPath, jwtMiddleware.Handle)
+	userRoleGroup.GET("", userRoleHandler.GetUserRoles, permissionMiddleware.Handle("View-Role"))
+	userRoleGroup.POST("/assign", userRoleHandler.AssignRolesToUser, permissionMiddleware.Handle("Update-Role"))
+	userRoleGroup.DELETE("/revoke", userRoleHandler.RemoveRolesFromUser, permissionMiddleware.Handle("Update-Role"))
 
 	// Register role endpoints
-	v1.POST("/role", roleHandler.CreateRole, jwtMiddleware.Handle)
-	v1.PUT("/role/:id", roleHandler.UpdateRole, jwtMiddleware.Handle)
-	v1.DELETE("/role/:id", roleHandler.DeleteRole, jwtMiddleware.Handle)
-	v1.GET("/role/:id", roleHandler.Role, jwtMiddleware.Handle)
-	v1.GET("/roles", roleHandler.Roles, jwtMiddleware.Handle)
+	roleGroup := v1.Group(rolesPath, jwtMiddleware.Handle)
+	roleGroup.POST("", roleHandler.CreateRole, permissionMiddleware.Handle("Create-Role"))
+	roleGroup.PUT("/:id", roleHandler.UpdateRole, permissionMiddleware.Handle("Update-Role"))
+	roleGroup.DELETE("/:id", roleHandler.DeleteRole, permissionMiddleware.Handle("Delete-Role"))
+	roleGroup.GET("/:id", roleHandler.Role, permissionMiddleware.Handle("View-Role"))
+	roleGroup.GET("", roleHandler.Roles, permissionMiddleware.Handle("List-Role"))
 
 	// Register role permission endpoints
-	v1.GET("/role/:role_id/permissions", rolePermissionHandler.GetRolePermissions, jwtMiddleware.Handle)
-	v1.POST("/role/:role_id/permissions/assign", rolePermissionHandler.AssignPermissionsToRole, jwtMiddleware.Handle)
-	v1.DELETE("/role/:role_id/permissions/revoke", rolePermissionHandler.RemovePermissionsFromRole, jwtMiddleware.Handle)
+	rolePermissionGroup := v1.Group(rolePermissionsPath, jwtMiddleware.Handle)
+	rolePermissionGroup.GET("", rolePermissionHandler.GetRolePermissions, permissionMiddleware.Handle("View-Permission"))
+	rolePermissionGroup.POST("/assign", rolePermissionHandler.AssignPermissionsToRole, permissionMiddleware.Handle("Update-Permission"))
+	rolePermissionGroup.DELETE("/revoke", rolePermissionHandler.RemovePermissionsFromRole, permissionMiddleware.Handle("Update-Permission"))
 
 	// Register permission endpoints
-	v1.POST("/permission", permissionHandler.CreatePermission, jwtMiddleware.Handle)
-	v1.PUT("/permission/:id", permissionHandler.UpdatePermission, jwtMiddleware.Handle)
-	v1.DELETE("/permission/:id", permissionHandler.DeletePermission, jwtMiddleware.Handle)
-	v1.GET("/permission/:id", permissionHandler.Permission, jwtMiddleware.Handle)
-	v1.GET("/permissions", permissionHandler.Permissions, jwtMiddleware.Handle)
+	permissionGroup := v1.Group(permissionsPath, jwtMiddleware.Handle)
+	permissionGroup.POST("", permissionHandler.CreatePermission, permissionMiddleware.Handle("Create-Permission"))
+	permissionGroup.PUT("/:id", permissionHandler.UpdatePermission, permissionMiddleware.Handle("Update-Permission"))
+	permissionGroup.DELETE("/:id", permissionHandler.DeletePermission, permissionMiddleware.Handle("Delete-Permission"))
+	permissionGroup.GET("/:id", permissionHandler.Permission, permissionMiddleware.Handle("View-Permission"))
+	permissionGroup.GET("", permissionHandler.Permissions, permissionMiddleware.Handle("List-Permission"))
 }

@@ -17,6 +17,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      opensearch-node1:
+        condition: service_healthy
     restart: always
     networks:
       - user-svc-net
@@ -101,40 +103,45 @@ services:
     ports:
       - "9200:9200"
       - "9600:9600" # required for Performance Analyzer
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=50s || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - user-svc-net
   opensearch-node2:
-      image: opensearchproject/opensearch:latest
-      container_name: opensearch-node2
-      environment:
-        - cluster.name=opensearch-cluster
-        - node.name=opensearch-node2
-        - discovery.seed_hosts=opensearch-node1,opensearch-node2
-        - cluster.initial_cluster_manager_nodes=opensearch-node1,opensearch-node2
-        - bootstrap.memory_lock=true
-        - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
-      ulimits:
-        memlock:
-          soft: -1
-          hard: -1
-        nofile:
-          soft: 65536
-          hard: 65536
-      volumes:
-        - opensearch-data2:/usr/share/opensearch/data
-      networks:
-        - user-svc-net
+    image: opensearchproject/opensearch:latest
+    container_name: opensearch-node2
+    environment:
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch-node2
+      - discovery.seed_hosts=opensearch-node1,opensearch-node2
+      - cluster.initial_cluster_manager_nodes=opensearch-node1,opensearch-node2
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch-data2:/usr/share/opensearch/data
+    networks:
+      - user-svc-net
   opensearch-dashboards:
-      image: opensearchproject/opensearch-dashboards:latest
-      container_name: opensearch-dashboards
-      ports:
-        - "5601:5601"
-      expose:
-        - "5601"
-      environment:
-        OPENSEARCH_HOSTS: '["https://opensearch-node1:9200","https://opensearch-node2:9200"]'
-      networks:
-        - user-svc-net
+    image: opensearchproject/opensearch-dashboards:latest
+    container_name: opensearch-dashboards
+    ports:
+      - "5601:5601"
+    expose:
+      - "5601"
+    environment:
+      OPENSEARCH_HOSTS: '["https://opensearch-node1:9200","https://opensearch-node2:9200"]'
+    networks:
+      - user-svc-net
 
 volumes:
   postgres-data:
