@@ -44,10 +44,10 @@ func dsn(cfg *config.Config) string {
 	username := cfg.Database.Pgsql.Username
 	password := cfg.Database.Pgsql.Password
 
-	connection := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=disable&search_path=%s", username, password, host, port, database, schema)
+	address := fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=disable&search_path=%s", username, password, host, port, database, schema)
 	if cfg.App.Debug {
-		fmt.Println(fmt.Sprintf("Trying connect postgresql with %s", connection))
+		fmt.Println(fmt.Sprintf("Trying connect postgresql with %s", address))
 	}
 
-	return connection
+	return address
 }

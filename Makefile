@@ -12,6 +12,9 @@ migrate-up:
 migrate-down:
 	migrate -path database/migrations/ -database "$(CONNECTION_STRING)" -verbose down
 
+seed:
+	go run database/seeds/seed.go -database "$(CONNECTION_STRING)"
+
 mock:
 	mockery --dir internal --output internal/mocks --all --keeptree
 

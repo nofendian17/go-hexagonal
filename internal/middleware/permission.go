@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"errors"
 	"net/http"
 	"user-svc/internal/core/domain"
 	"user-svc/internal/core/ports"
@@ -25,7 +24,7 @@ func (p *PermissionCheckerImpl) Check(c echo.Context, requiredPermission string)
 	authID := c.Get(constants.KeyAuthID).(string)
 	tokenInfo, err := p.AuthRepository.GetToken(authID)
 	if err != nil {
-		return false, errors.New("failed get cache")
+		return false, err
 	}
 	for _, role := range tokenInfo.Roles {
 		d := &domain.GetRolePermissionRequest{
@@ -50,16 +49,18 @@ type PermissionMiddleware struct {
 	Checker PermissionChecker
 }
 
-func (m *PermissionMiddleware) Handle(next echo.HandlerFunc, requiredPermission string) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		if hasPermission, err := m.Checker.Check(c, requiredPermission); err != nil {
-			return err
-		} else if !hasPermission {
-			return c.JSON(http.StatusForbidden, &appError.AppError{
-				Code:    http.StatusForbidden,
-				Message: "forbidden",
-			})
+func (m *PermissionMiddleware) Handle(requiredPermission string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if hasPermission, err := m.Checker.Check(c, requiredPermission); err != nil {
+				return err
+			} else if !hasPermission {
+				return c.JSON(http.StatusForbidden, &appError.AppError{
+					Code:    http.StatusForbidden,
+					Message: "forbidden",
+				})
+			}
+			return next(c)
 		}
-		return next(c)
 	}
 }
